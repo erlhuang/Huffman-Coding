@@ -13,7 +13,6 @@
 
 int main(int argc, char *argv[])
 {
-	uint32_t magic = 0xdeadd00d;
 	uint64_t fileSize = 0;
 	uint16_t leafCount = 0;
 	int depth = 20;
@@ -62,7 +61,7 @@ int main(int argc, char *argv[])
 	FILE* inputFile = fopen(iFile, "r");
 	if (inputFile == NULL)
 	{
-		perror("Error opening input file);
+		perror("error");
 		exit(errno);
 		return 0;
 	}
@@ -71,19 +70,18 @@ int main(int argc, char *argv[])
 	int outFile = open(oFile, O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
 	if (outFile == -1)
 	{
-		perror("Error opening output file");
+		perror("error");
 		exit(errno);
 		return 0;
 	}
 
 	//create histogram
 	uint32_t *histogram = malloc(256 * sizeof(uint32_t));
-	if (histogram == NULL){ printf("Error creating histogram"; return 0; }
+	if (histogram == NULL) {return 0;}
 
 	//populate histogram
 	int c;
-	while ((c = fgetc(inputFile)) != EOF)
-	{
+	while ((c = fgetc(inputFile)) != EOF){
 		histogram[c]++;
 		fileSize++;
 	}
@@ -107,40 +105,44 @@ int main(int argc, char *argv[])
 	{
 		if (histogram[i] > 0)
 		{
-			treeNode node = *newNode(i, 1, histogram[i]);
+			treeNode *node = newNode(i, false, histogram[i]);
 			enqueue(superQueue, node);
 			leafCount++;
 		}
 	}
 
 	//pull 2 nodes of queue, combine, put back into queue
-	treeNode *root = NULL;
-	while (!queueEmpty(superQueue))
+	treeNode *root;
+	while (true)
 	{
-		treeNode x;
+		treeNode *x;
 		dequeue(superQueue, &x);
 		if (!queueEmpty(superQueue))
 		{
-			treeNode y;
+			treeNode *y;
 			treeNode *z;
 			dequeue(superQueue, &y);
-			z = join(&x, &y);
-			enqueue(superQueue, *z);
+			z = join(x, y);
+			enqueue(superQueue, z);
 		}
 		else
 		{
-			root = &x;
+			root = x;
 			break;
 		}
 	}
 
 	//performing a post-order traversal
 	code superCode = newCode();
-	code codeTable = newCode();
-	//this is where the seg fault happens
-	buildCode(root, superCode, &codeTable);
+	code codeTable[256];
+	for (int i = 0; i < 256; i++)
+	{
+		codeTable[i] = newCode();
+	}
+	buildCode(root, superCode, codeTable);
 
 	//writing magic number to oFile
+	uint32_t magic = 0xdeadd00d;
 	write(outFile, &magic, sizeof(magic));
 
 	//writing length of original file
@@ -151,11 +153,11 @@ int main(int argc, char *argv[])
 	leafCount = leafCount > 0 ? 3 * leafCount - 1 : 0;
 	write(outFile, &leafCount, sizeof(leafCount));
 
-	//write tree to file
-	dumpTree(root, outFile);
-
-	//copy bits of code for ofile
-	//we must reset the read operation first
+	// //write tree to file
+	// dumpTree(root, outFile);
+	//
+	// //copy bits of code for ofile
+	// //we must reset the read operation first
 	inputFile = fopen(iFile, "r");
 	if (inputFile == NULL)
 	{
@@ -163,21 +165,21 @@ int main(int argc, char *argv[])
 		exit(errno);
 		return 0;
 	}
-
-	//now we can write the bits to the file
-	bitV* bv = newVec(10000);
-	c = 0;
-	//set bits
-	while ((c = fgetc(inputFile)) != EOF)
-	{
-		setBit(bv, c);
-	}
-	//write bits
-	for (int i = 0; i < 256; i++)
-	{
-		uint32_t t = valBit(bv, i);
-		write(outFile, &t, sizeof(uint32_t));
-	}
+	//
+	// //now we can write the bits to the file
+	// bitV* bv = newVec(10000);
+	// c = 0;
+	// //set bits
+	// while ((c = fgetc(inputFile)) != EOF)
+	// {
+	// 	setBit(bv, c);
+	// }
+	// //write bits
+	// for (int i = 0; i < 256; i++)
+	// {
+	// 	uint32_t t = valBit(bv, i);
+	// 	write(outFile, &t, sizeof(uint32_t));
+	// }
 
 	//print other info
 	if (printT)

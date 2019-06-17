@@ -92,17 +92,20 @@ int32_t stepTree (treeNode *root, treeNode **t, uint32_t code)
 
 void buildCode (treeNode *t, code s, code table[256])
 {
-    if (t -> leaf)
+    if (t -> leaf == true)
     {
         table[t -> symbol] = s;
+				return;
     }
-    if (t -> symbol == '$')
+    else if (t -> symbol == '$')
     {
+				uint32_t placeholder;
         pushCode(&s, 0);
         buildCode(t -> left, s, table);
-        popCode(&s, NULL);
+        popCode(&s, &placeholder);
         pushCode(&s, 1);
         buildCode(t -> right, s, table);
+				popCode(&s, &placeholder);
     }
     return;
 }
@@ -116,7 +119,7 @@ void delTree (treeNode *t)
         delNode(t);
     }
     return;
-} 
+}
 
 treeNode *join (treeNode *l, treeNode *r)
 {
@@ -150,5 +153,4 @@ void printTree(treeNode *t, int depth)
                 printTree(t->right, depth + 1);
         }
         return;
-} 
-
+}

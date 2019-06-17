@@ -1,12 +1,12 @@
 //Written by Eric Lin Huang
-# include <getopt.h> //getopt
-# include <stdio.h> //printf
-# include <unistd.h>// from here
+# include <getopt.h>
+# include <stdio.h>
+# include <unistd.h>
 # include <sys/types.h>
 # include <sys/stat.h>
-# include <fcntl.h>  //to here is for read() open() write() etc
-# include <errno.h> //errors
-# include <stdlib.h> //calloc
+# include <fcntl.h>
+# include <errno.h>
+# include <stdlib.h>
 # include "decode.h"
 # include "huffman.h"
 # include "stack.h"
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
       return 0;
 }
 
-/*
+/*Credits to Darrel Long's lecture
 Gets the nextBit of a byte and remembers the position of last checked
 bit */
 uint32_t nextBit(uint8_t bytes)
